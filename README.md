@@ -47,3 +47,7 @@ python train.py \
   --bnb_4bit_compute_dtype "bfloat16" \
   --use_flash_attn True
 ```
+
+## Acknowledgements
+
+This repository is based on https://github.com/pacman100/LLM-Workshop
