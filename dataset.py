@@ -5,12 +5,11 @@ import fim
 import functools
 import torch
 import random
-from transformers import AutoTokenizer
-from datasets import load_dataset
 
 DOCUMENT_SPLIT_RATE = 1
 
 
+# Adapted from https://github.com/pacman100/LLM-Workshop/blob/0ba41561ce6ea16d3993069c03ec1dca3ab6769d/personal_copilot/training/train.py#L144
 class ConstantLengthDataset(IterableDataset):
     """
     Iterable dataset that returns constant length chunks of tokens from stream of text files.
@@ -32,7 +31,7 @@ class ConstantLengthDataset(IterableDataset):
         dataset,
         infinite=False,
         seq_length=1024,
-        num_of_sequences=4096,
+        num_of_sequences=1024,
         chars_per_token=3.6,
         content_field="content",
         fim_rate=0.5,
@@ -60,17 +59,11 @@ class ConstantLengthDataset(IterableDataset):
         self.fim_spm_rate = fim_spm_rate
         self.seed = seed
         self.shuffle = shuffle
-
-        (
-            self.bos_token_id,
-            self.suffix_tok_id,
-            self.prefix_tok_id,
-            self.middle_tok_id,
-            self.pad_tok_id,
-        ) = fim.get_fim_token_ids(self.tokenizer)
-        if not self.suffix_tok_id and self.fim_rate > 0:
-            print("FIM is not supported by tokenizer, disabling FIM")
-            self.fim_rate = 0
+        self.bos_token_id = self.tokenizer.bos_token_id
+        self.suffix_tok_id = self.tokenizer.suffix_id
+        self.prefix_tok_id = self.tokenizer.prefix_id
+        self.middle_tok_id = self.tokenizer.middle_id
+        self.pad_tok_id = 0
 
     def __iter__(self):
         iterator = iter(self.dataset)
@@ -124,7 +117,6 @@ class ConstantLengthDataset(IterableDataset):
             )
 
             samples = []
-            segment_lengths = []
 
             try:
                 for i in range(0, len(tokenized_inputs), self.seq_length):
@@ -149,7 +141,6 @@ class ConstantLengthDataset(IterableDataset):
                             for loc in np.nditer(segment_breaks):
                                 # Only permute non-empty segments.
                                 if loc - curr_start_position > 0:
-                                    segment_lengths.append(loc - curr_start_position)
                                     # permute {prefix, suffix, middle} or {suffix, prefix, middle}
                                     permuted, np_rng = fim.permute_char_level(
                                         sample[curr_start_position:loc],
@@ -173,22 +164,6 @@ class ConstantLengthDataset(IterableDataset):
                             last_chunk = sample[curr_start_position:]
                             # The last chunk will be truncated after so we'll get a bad example
                             self.not_permuted_length += last_chunk.shape[0]
-                            # permuted, np_rng = fim.permute_char_level(
-                            #     last_chunk,
-                            #     np_rng,
-                            #     self.fim_rate,
-                            #     self.fim_spm_rate,
-                            #     self.suffix_tok_id,
-                            #     self.prefix_tok_id,
-                            #     self.middle_tok_id,
-                            #     self.pad_tok_id,
-                            #     self.tokenizer,
-                            # )
-                            # new_samples += [
-                            #     [self.bos_token_id],
-                            #     permuted,
-                            #     [self.eot_token_id, self.concat_token_id],
-                            # ]
                             new_samples += [
                                 [self.bos_token_id],
                                 last_chunk,
@@ -198,7 +173,6 @@ class ConstantLengthDataset(IterableDataset):
                         else:
                             self.whole_samples += 1
                             old_sample_length = sample.shape[0]
-                            segment_lengths.append(sample.shape[0])
                             permuted, np_rng = fim.permute_char_level(
                                 sample,
                                 np_rng,
@@ -238,10 +212,6 @@ class ConstantLengthDataset(IterableDataset):
                 print(f"Error in sample generation: {str(e)}")
                 traceback.print_exc()
 
-            print(segment_lengths)
-            print(f"Not permuted length: {self.not_permuted_length}")
-            print(f"Total length: {self.total_length}")
-
             if self.shuffle:
                 random.shuffle(samples)
             for sample in samples:
@@ -256,32 +226,3 @@ class ConstantLengthDataset(IterableDataset):
                     "input_ids": torch.LongTensor(sample),
                     "labels": torch.LongTensor(sample),
                 }
-
-
-if __name__ == "__main__":
-    tokenizer = AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf")
-    dataset = load_dataset(
-        "BohdanPetryshyn/openapi-completion-deduplicated", split="train"
-    )
-    train_dataset = ConstantLengthDataset(
-        tokenizer,
-        dataset,
-        infinite=False,
-        seq_length=5120,
-        chars_per_token=4,
-        content_field="content",
-        fim_rate=0.8,
-        fim_spm_rate=0.5,
-        seed=10,
-        shuffle=True,
-    )
-
-    num_samples = 0
-
-    for sample in train_dataset:
-        if num_samples % 100 == 0:
-            print(f"Samples generated: {num_samples}")
-
-        num_samples += 1
-
-    print(f"Total samples generated: {num_samples}")

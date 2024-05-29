@@ -1,21 +1,4 @@
-# coding=utf-8
-# Copyright 2024 Sourab Mangrulkar. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""
-Continued pre-training/fine-tuning of code LLMs for code autocompletion.
-"""
+# Adapted from: https://github.com/pacman100/LLM-Workshop/blob/0ba41561ce6ea16d3993069c03ec1dca3ab6769d/personal_copilot/training/train.py#L144
 
 import gc
 import os
@@ -45,7 +28,6 @@ from peft import (
 from dataset import ConstantLengthDataset
 
 
-# Define and parse arguments.
 @dataclass
 class ModelArguments:
     """
@@ -156,8 +138,8 @@ def create_datasets(tokenizer, args, seed):
         f"Size of the train set: {len(train_data)}. Size of the validation set: {len(valid_data)}"
     )
     chars_per_token = chars_token_ratio(train_data, tokenizer, args.dataset_text_field)
-    # chars_per_token = 4
     print(f"The character to token ratio of the dataset is: {chars_per_token:.2f}")
+
     train_dataset = ConstantLengthDataset(
         tokenizer,
         train_data,
