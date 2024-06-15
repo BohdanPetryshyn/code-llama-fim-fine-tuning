@@ -16,9 +16,9 @@ You can train the Code Llama 7B model using Google Colab with an A100 GPU. Use t
 
 The notebook will save the trained adapter to your Hugging Face account. The adapter can be used with the Python Transformers library for inference (see [docs](https://huggingface.co/docs/transformers/main/en/peft)). To create a standalone model, you can merge the adapter with the original model. The merged model can be used with the Hugging Face Inference Endpoints to serve the model as an API.
 
-### Merge the fine-tuned model with the original model
+### Obtain a standalone model
 
-This Google Colab notebook can be used to merge the fine-tuned adapter with the Code Llama 7B model using the free Tesla T4 GPU but requires high-RAM: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1fCnfuKJHzH9afwN0vcFF75daLDtHlN26?usp=sharing)
+This Google Colab notebook can be used to merge the fine-tuned adapter with the Code Llama 7B model using the free Tesla T4 GPU but requires high-RAM: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1aTCVkdopRp1o7Se68FlWw6RrlKvn0jTh?usp=sharing)
 
 ### Serve the model as an API
 
