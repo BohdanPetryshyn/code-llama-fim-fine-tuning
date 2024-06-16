@@ -1,6 +1,6 @@
 # Code Llama fill-in-the-middle fine-tuning
 
-This repository allows you to fine-tune the Code Llama model to fill in the middle on your own dataset by mirroring the process described in the original [Code Llama paper](https://arxiv.org/abs/2308.12950). Infilling (filling in the middle) models are optimal for code completion tasks, where the model is given a prefix and a suffix and is asked to fill the middle.
+This repository allows you to fine-tune the Code Llama model to fill in the middle on your own dataset by mirroring the process described in the original [Code Llama paper](https://arxiv.org/abs/2308.12950). Infilling (filling in the middle) models are optimal for code completion tasks, where the model is given a prefix and a suffix and is asked to fill the middle. In the "Optimizing Large Language Models for OpenAPI Code Completion" [paper](https://arxiv.org/abs/2405.15729), we improved Code Llama performance in OpenAPI completion by **28.6%** outperforming GitHub Copilot by **55.2%**.
 
 ## How to use
 
